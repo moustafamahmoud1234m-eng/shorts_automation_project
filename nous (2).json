@@ -1,0 +1,1174 @@
+{
+  "name": "insights",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1iuTPqwxV1GcH127M4vJgszDxDIC9J5b4",
+          "mode": "id"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        272
+      ],
+      "id": "63058174-6f63-4852-8411-c89db57a0605",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "3U4yHrBIaOiYv8NE",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -336,
+        272
+      ],
+      "id": "1eb9d1c3-8072-4ef1-80ab-277f53c25ec7",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "3U4yHrBIaOiYv8NE",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d10ad7b7-e755-43b8-a197-69dc0e304661",
+              "name": "title",
+              "value": "={{ $json.fileName ? $json.fileName.split('.').slice(0, -1).join('.') : $json.name.split('.').slice(0, -1).join('.') }}",
+              "type": "string"
+            },
+            {
+              "id": "c97759d4-e525-4511-9b49-f6088cdc274b",
+              "name": "dis",
+              "value": "={{ ($json.fileName ? $json.fileName.split('.').slice(0, -1).join('.') : $json.name.split('.').slice(0, -1).join('.')) + ' #Shorts #Reels #TikTok' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -112,
+        272
+      ],
+      "id": "f8b39683-1e58-4c94-8b62-0876f116897d",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "upload",
+        "title": "={{ $json.title }}.",
+        "regionCode": "EG",
+        "categoryId": "20",
+        "options": {
+          "description": "={{ $json.dis }}",
+          "notifySubscribers": true,
+          "privacyStatus": "public"
+        }
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        176,
+        368
+      ],
+      "id": "9b74c100-920e-48a9-b1cf-9a6cef38056e",
+      "name": "Upload a video",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "MKYs5K0mof09cySL",
+          "name": "YouTube account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/17841460513184687/media",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "media_type",
+              "value": "REELS"
+            },
+            {
+              "name": "video_url",
+              "value": "=https://drive.google.com/uc?export=download&id={{ $('Google Drive Trigger').item.json.id }}"
+            },
+            {
+              "name": "access_token",
+              "value": "=EAAQDJ3G1G78BSwZANXMWCtjZALLjvMjVYdt4rDKdIj3gGLrlZAevifre7c47ZCat0CgQTn5GnKP8iCDVzhzoXDaOuw9zZBoNjo3FBgr3PKLfyNor2TQu9jPId8hv8vcidA8jv8v0i8ZAXZAiouoZAVGbZClRZAthXYm3ExO1MtxOUPNRRVuuFdhRLHy9UH95yZBhQZDZD"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -1216,
+        864
+      ],
+      "id": "d45572c2-f8aa-4a58-a8e4-fa5d4de41ed5",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v21.0/{{ $json.id }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "status_code"
+            },
+            {
+              "name": "access_token",
+              "value": "=EAAQDJ3G1G78BSwZANXMWCtjZALLjvMjVYdt4rDKdIj3gGLrlZAevifre7c47ZCat0CgQTn5GnKP8iCDVzhzoXDaOuw9zZBoNjo3FBgr3PKLfyNor2TQu9jPId8hv8vcidA8jv8v0i8ZAXZAiouoZAVGbZClRZAthXYm3ExO1MtxOUPNRRVuuFdhRLHy9UH95yZBhQZDZD"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -848,
+        864
+      ],
+      "id": "009efa4c-db9e-4133-8b20-7714fb382961",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "51c254fc-17a5-4017-bf8d-417c82641a4a",
+              "leftValue": "={{ $json.status_code }}",
+              "rightValue": "IN_PROGRESS",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "db674f63-0242-4988-951c-186427eb4889",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -608,
+        864
+      ],
+      "id": "bae962cf-e2af-4a74-a01f-a0a2b70df8a8",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1024,
+        864
+      ],
+      "id": "7c3f3d57-068c-478f-8f63-606147d9c6f7",
+      "name": "Wait",
+      "webhookId": "ac9e4614-a400-4301-b86f-f1659620fc65"
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Google Drive Trigger').item.json.id }}",
+          "mode": "id"
+        },
+        "driveId": {
+          "__rl": true,
+          "value": "1GiN8L4anrjc6NGgK12oFcLqVwApIZOyq",
+          "mode": "id"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root",
+          "cachedResultName": "/ (Root folder)"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "72ec237d-fd4a-4825-8eea-674a84c54ce7",
+      "name": "Move file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "3U4yHrBIaOiYv8NE",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/1444580962065477/videos",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "EAAQDJ3G1G78BSxuJ2FLV2UDRh6jKjdmFkKVe5zY5ZBOrmJVBnLAby4Riz3nIlBLwSqK1BG91HEAvR9pFZCL3Gl4WaxKwFxMCG4xThYFVf4nrXJ0XH1hvYV3lPw4631GxU9M7e57Btul0Mija8tDIh9IdgKstAlb97pZAassMRp6qle2zoGYIzZCEogGUIJyQNXAL"
+            },
+            {
+              "name": "description",
+              "value": "={{ ($json.fileName ? $json.fileName.split('.').slice(0, -1).join('.') : $json.name.split('.').slice(0, -1).join('.')) + ' #Shorts #Reels #TikTok' }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "source",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "description",
+              "value": "GG"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        176,
+        144
+      ],
+      "id": "9e250026-12eb-48a3-8beb-03284a0ab436",
+      "name": "FB",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/17841460513184687/media_publish",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "creation_id",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "name": "access_token",
+              "value": "=EAAQDJ3G1G78BSwZANXMWCtjZALLjvMjVYdt4rDKdIj3gGLrlZAevifre7c47ZCat0CgQTn5GnKP8iCDVzhzoXDaOuw9zZBoNjo3FBgr3PKLfyNor2TQu9jPId8hv8vcidA8jv8v0i8ZAXZAiouoZAVGbZClRZAthXYm3ExO1MtxOUPNRRVuuFdhRLHy9UH95yZBhQZDZD"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        176,
+        560
+      ],
+      "id": "f8a1b5d0-5f96-462c-b391-f5298962ca88",
+      "name": "INS"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "daysInterval": 3
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -1632,
+        1808
+      ],
+      "id": "b7749acd-af68-4735-bdbb-a4c74123fee7",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "returnAll": true,
+        "filters": {
+          "channelId": "UCnyQQ2YLFk6PFU6ld79nJTA"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        -1216,
+        1808
+      ],
+      "id": "b6059ecf-1021-4051-a152-701ff61d2c82",
+      "name": "Get many videos",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "MKYs5K0mof09cySL",
+          "name": "YouTube account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "get",
+        "videoId": "={{ $json['id.videoId'] }}",
+        "part": [
+          "*",
+          "statistics",
+          "snippet"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        -768,
+        1808
+      ],
+      "id": "51fa362d-641c-4226-97c8-b92fa76cb663",
+      "name": "Get a video",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "MKYs5K0mof09cySL",
+          "name": "YouTube account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -48,
+        1792
+      ],
+      "id": "63c84c1e-796d-47e7-bf01-513bd152f8d9",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        176,
+        1808
+      ],
+      "id": "4b1d16af-bcdc-4971-bb83-1f3ffd5dc439",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "url": "https://graph.facebook.com/v26.0/17841460513184687/media",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "id,caption,media_type"
+            },
+            {
+              "name": "access_token",
+              "value": "EAAQDJ3G1G78BSwZANXMWCtjZALLjvMjVYdt4rDKdIj3gGLrlZAevifre7c47ZCat0CgQTn5GnKP8iCDVzhzoXDaOuw9zZBoNjo3FBgr3PKLfyNor2TQu9jPId8hv8vcidA8jv8v0i8ZAXZAiouoZAVGbZClRZAthXYm3ExO1MtxOUPNRRVuuFdhRLHy9UH95yZBhQZDZD"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6a0c1c33-d2c5-4fb8-8379-1e4c481e3cdc",
+      "name": "HTTP Request - Get IG Media",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1200,
+        1568
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "id": "68498d4a-017e-4dca-a107-495ed7006100",
+      "name": "Split Out Data Array",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -992,
+        1568
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a9f6f594-750a-4f20-abcc-c42030e68161",
+              "name": "video.id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f15fc918-84bd-41be-9d90-5437290aac1e",
+      "name": "Edit Fields - IDs Only",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -768,
+        1568
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://graph.facebook.com/v26.0/1444580962065477/videos",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "id,description,created_time"
+            },
+            {
+              "name": "access_token",
+              "value": "EAAQDJ3G1G78BSwZANXMWCtjZALLjvMjVYdt4rDKdIj3gGLrlZAevifre7c47ZCat0CgQTn5GnKP8iCDVzhzoXDaOuw9zZBoNjo3FBgr3PKLfyNor2TQu9jPId8hv8vcidA8jv8v0i8ZAXZAiouoZAVGbZClRZAthXYm3ExO1MtxOUPNRRVuuFdhRLHy9UH95yZBhQZDZD"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b6f803e2-5ffd-41c2-a4de-296e7b918b11",
+      "name": "HTTP Request - Get FB Videos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1200,
+        2064
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "id": "9b1106ed-c261-409c-b8c6-d578fa1f6a8d",
+      "name": "Split Out FB Data Array",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -992,
+        2064
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fa26fb3a-2d55-4ace-9241-f02087366a68",
+              "name": "id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "eca908f3-5f3e-495c-8635-4464ceaefbd4",
+      "name": "Edit Fields - FB Video IDs",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -752,
+        2064
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "id.videoId",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -992,
+        1808
+      ],
+      "id": "ed9b4551-24bd-42a6-9623-8d8c614ef61b",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "snippet.title, snippet.description, statistics.viewCount, statistics.likeCount, statistics.dislikeCount, statistics.favoriteCount, statistics.commentCount,",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -4176,
+        -208
+      ],
+      "id": "eab5d6b1-1f9a-4f45-941c-6297e5ea62ce",
+      "name": "youtube insights"
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v26.0/{{ $json.video.id }}/insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "metric",
+              "value": "views,reach,total_interactions,likes,comments,shares,saved"
+            },
+            {
+              "name": "access_token",
+              "value": "EAAQDJ3G1G78BSwZANXMWCtjZALLjvMjVYdt4rDKdIj3gGLrlZAevifre7c47ZCat0CgQTn5GnKP8iCDVzhzoXDaOuw9zZBoNjo3FBgr3PKLfyNor2TQu9jPId8hv8vcidA8jv8v0i8ZAXZAiouoZAVGbZClRZAthXYm3ExO1MtxOUPNRRVuuFdhRLHy9UH95yZBhQZDZD"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "eef675de-4cdc-45ef-88d2-9409c865ca28",
+      "name": "HTTP Request - Get IG Media1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -528,
+        1568
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v26.0/{{ $json.id }}/video_insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "metric",
+              "value": "fb_reels_total_plays,post_video_avg_time_watched,post_video_social_actions"
+            },
+            {
+              "name": "access_token",
+              "value": "EAAQDJ3G1G78BSxuJ2FLV2UDRh6jKjdmFkKVe5zY5ZBOrmJVBnLAby4Riz3nIlBLwSqK1BG91HEAvR9pFZCL3Gl4WaxKwFxMCG4xThYFVf4nrXJ0XH1hvYV3lPw4631GxU9M7e57Btul0Mija8tDIh9IdgKstAlb97pZAassMRp6qle2zoGYIzZCEogGUIJyQNXAL"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6ad1bb2c-4762-443e-b54c-28d9c8a345f2",
+      "name": "HTTP Request - Get FB Videos1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -528,
+        2064
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\n\nfor (const inputItem of $input.all()) {\n  const metrics = inputItem.json.data || [];\n\n  let mediaId = '';\n  let views = 0;\n  let reach = 0;\n  let totalInteractions = 0;\n  let likes = 0;\n  let comments = 0;\n  let shares = 0;\n  let saved = 0;\n\n  for (const item of metrics) {\n    if (!mediaId && item.id) {\n      // Extracts the media ID from e.g. \"18182160208438909/insights/...\"\n      mediaId = item.id.split('/')[0];\n    }\n\n    const val = (item.values && item.values.length > 0) ? Number(item.values[0].value) || 0 : 0;\n\n    switch (item.name) {\n      case 'views':\n        views = val;\n        break;\n      case 'reach':\n        reach = val;\n        break;\n      case 'total_interactions':\n        totalInteractions = val;\n        break;\n      case 'likes':\n        likes = val;\n        break;\n      case 'comments':\n        comments = val;\n        break;\n      case 'shares':\n        shares = val;\n        break;\n      case 'saved':\n        saved = val;\n        break;\n    }\n  }\n\n  results.push({\n    json: {\n      media_id: mediaId,\n      platform: 'instagram',\n      views: views,\n      reach: reach,\n      total_interactions: totalInteractions,\n      likes: likes,\n      comments: comments,\n      shares: shares,\n      saved: saved\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        1568
+      ],
+      "id": "b9cd8f4b-8c0a-41c5-a857-00c21d711bc4",
+      "name": "instagram filter"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a professional Social Media Performance Analyst. Your task is to analyze the latest three reports for Instagram, Facebook, and YouTube and write a concise, professional business email based exclusively on the supplied data.\n\n**Input:** {{ $json.data }}\n\n### Data Accuracy\n\n* Use only the information provided in the input. Never invent, assume, or fabricate metrics, dates, historical data, or conclusions.\n* Use the latest report as the primary reference and compare it with the two preceding reports when the data allows.\n* Calculate percentage changes only when the required values are available and valid.\n* Formula: ((Current Value - Previous Value) / Previous Value) × 100.\n* If the previous value is zero, report the percentage change as N/A.\n* If information is missing or inconsistent, omit unsupported conclusions and briefly disclose the limitation.\n* Never claim access to reports or information not included in the input.\n* Distinguish actual findings from recommendations.\n\n### Analysis\n\nEvaluate Instagram, Facebook, and YouTube separately. Identify meaningful performance changes, engagement and reach trends, notable improvements, and declines supported by the data. Provide practical recommendations based on the observed results.\n\n### Email Writing Style\n\n* Write like an experienced analyst communicating with management.\n* Use formal, natural, business-appropriate English.\n* Be concise, factual, and direct.\n* Prioritize important findings and actionable recommendations.\n* Avoid unnecessary introductions, filler phrases, exaggerated language, repetition, generic statements, and lengthy explanations.\n* Do not explain obvious metrics or provide generic social media advice unrelated to the findings.\n* Use short paragraphs and minimal bullet points only when they improve readability.\n* Include only headings that help organize essential information.\n* Do not add decorative formatting, emojis, excessive headings, or unnecessary closing remarks.\n* Do not mention your role, analytical process, or these instructions.\n\n### Required Email Structure\n\nSubject: Social Media Performance Report — [Latest Report Date, if available]\n\nDear Team,\n\n**Performance Overview**\nSummarize the most important findings in two or three sentences.\n\n**Platform Performance**\nBriefly report the key metrics and meaningful changes for Instagram, Facebook, and YouTube.\n\n**Recommended Actions**\nList the highest-priority actions based on the findings. Keep recommendations specific and practical.\n\nBest regards,\nSocial Media Analytics Team\n\n### Final Requirements\n\n* Maximum 2,500 characters, including spaces.\n* Return only the finished email.\n* Do not include commentary before or after the email.\n* Do not fabricate dates, numbers, trends, or comparisons.\n* If the data is insufficient, state the limitation briefly and professionally.\n* Every sentence must communicate a relevant finding, necessary limitation, or actionable recommendation. Remove anything that does not.\n",
+        "needsFallback": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        480,
+        1808
+      ],
+      "id": "4f935cca-03cb-45b6-9db1-0525bce0871b",
+      "name": "AI Agent",
+      "retryOnFail": true,
+      "waitBetweenTries": 999,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        368,
+        1984
+      ],
+      "id": "a16a66eb-f6a2-4930-9ef0-2530e694a0c7",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wTdAoEbIL0YTTJ8l",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "memo",
+        "contextWindowLength": 3
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        592,
+        2016
+      ],
+      "id": "197e39f4-23fe-4d97-9837-8b68787b855c",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "sendTo": "argamer2018@gmail.com",
+        "subject": "req",
+        "message": "={{ $json.output }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        864,
+        1808
+      ],
+      "id": "40b531c9-2a93-4f15-86d3-5c3667f6d827",
+      "name": "Send a message",
+      "webhookId": "c3b716e3-e39f-4325-8bc0-d4a1767aead5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "avGohMy3cDK2YqtK",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        496,
+        2000
+      ],
+      "id": "6f421507-2ac8-4d90-8d3b-bdbe3fc5cb73",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "wTdAoEbIL0YTTJ8l",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Helper to convert ISO 8601 duration (e.g. PT2M28S, PT18S) to total seconds\nfunction parseIsoDuration(durationStr) {\n  if (!durationStr) return 0;\n  const match = durationStr.match(/PT(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?/);\n  if (!match) return 0;\n  const hours = parseInt(match[1] || 0, 10);\n  const minutes = parseInt(match[2] || 0, 10);\n  const seconds = parseInt(match[3] || 0, 10);\n  return (hours * 3600) + (minutes * 60) + seconds;\n}\n\nconst results = [];\n\nfor (const item of $input.all()) {\n  const json = item.json;\n  const snippet = json.snippet || {};\n  const stats = json.statistics || {};\n  const content = json.contentDetails || {};\n\n  results.push({\n    json: {\n      video_id: json.id,\n      platform: 'youtube',\n      title: snippet.title || '',\n      views: Number(stats.viewCount) || 0,\n      likes: Number(stats.likeCount) || 0,\n      comments: Number(stats.commentCount) || 0,\n      duration_seconds: parseIsoDuration(content.duration),\n    \n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        1808
+      ],
+      "id": "4ee6bd26-3d38-4c24-a385-dd1547f3860f",
+      "name": "filtering yt"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const metrics = $json.data || [];\n\nlet videoId = '';\nlet plays = 0;\nlet avgWatchTimeMs = 0;\nlet comments = 0;\nlet reactions = 0;\nlet shares = 0;\n\nfor (const item of metrics) {\n  if (!videoId && item.id) {\n    // Extracts the video ID from \"1925205605552411/video_insights/...\"\n    videoId = item.id.split('/')[0];\n  }\n\n  const firstValue = (item.values && item.values.length > 0) ? item.values[0].value : null;\n\n  switch (item.name) {\n    case 'fb_reels_total_plays':\n      plays = Number(firstValue) || 0;\n      break;\n\n    case 'post_video_avg_time_watched':\n      avgWatchTimeMs = Number(firstValue) || 0;\n      break;\n\n    case 'post_video_social_actions':\n      if (typeof firstValue === 'object' && firstValue !== null) {\n        comments = firstValue.COMMENT || 0;\n        shares = firstValue.SHARE || 0;\n        // Aggregates likes or explicit reaction keys if present\n        reactions = (firstValue.LIKE || 0) + (firstValue.REACTION || 0);\n      }\n      break;\n  }\n}\n\nreturn {\n  json: {\n    video_id: videoId,\n    platform: 'facebook',\n    plays: plays,\n    avg_watch_time_seconds: Number((avgWatchTimeMs / 1000).toFixed(2)),\n    comments: comments,\n    shares: shares,\n    reactions: reactions\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        2064
+      ],
+      "id": "816725a5-592b-4c80-9825-20e448639abc",
+      "name": "filtering fb"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Upload a video",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "FB",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Move file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "INS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload a video": {
+      "main": [
+        []
+      ]
+    },
+    "FB": {
+      "main": [
+        []
+      ]
+    },
+    "INS": {
+      "main": [
+        []
+      ]
+    },
+    "Get many videos": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Get IG Media",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request - Get FB Videos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get many videos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a video": {
+      "main": [
+        [
+          {
+            "node": "filtering yt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Get IG Media": {
+      "main": [
+        [
+          {
+            "node": "Split Out Data Array",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out Data Array": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields - IDs Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Get FB Videos": {
+      "main": [
+        [
+          {
+            "node": "Split Out FB Data Array",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out FB Data Array": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields - FB Video IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Get a video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields - FB Video IDs": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Get FB Videos1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields - IDs Only": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Get IG Media1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "youtube insights": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request - Get FB Videos1": {
+      "main": [
+        [
+          {
+            "node": "filtering fb",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Get IG Media1": {
+      "main": [
+        [
+          {
+            "node": "instagram filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "instagram filter": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "filtering yt": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "filtering fb": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "22539c7c-a685-4c51-a521-51c01192236c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d50db77b0a568bd0a56326ed607d8d28124845f24b3a0d614b03c80156650377"
+  },
+  "nodeGroups": [],
+  "id": "ge6yLFltPoKGQhzh",
+  "tags": []
+}
