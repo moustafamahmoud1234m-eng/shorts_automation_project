@@ -50,9 +50,8 @@ streamlit run app.py
 
 - `app.py`: Main Streamlit web application.
 - `authenticate.py`: Standalone Google Drive OAuth login helper.
-- `client_secret.json`: OAuth Client ID allowing the app to request Drive permissions.
-- `.env`: Database credentials (`SUPABASE_URL`, `SUPABASE_KEY`) and Admin credentials (`ADMIN_USERNAME`, `ADMIN_PASSWORD`).
-
+- 'run.bat': standalone runner for the ui in browser
+- 'requirements.txt': txt file with required py libraries to be installed for the ui to work 
 ---
 
 ## 🔐 Admin Access & Payload Protection
