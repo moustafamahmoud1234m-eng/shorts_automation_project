@@ -1,0 +1,1249 @@
+{
+  "name": "nous",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.body.drive_file_id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        4112,
+        1200
+      ],
+      "id": "2a817a6c-4166-4b15-9ccf-cd68c29c68e3",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "ngXLMa5ot75h5XjS",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d10ad7b7-e755-43b8-a197-69dc0e304661",
+              "name": "title",
+              "value": "={{ $('Webhook').item.json.body.record.title }}",
+              "type": "string"
+            },
+            {
+              "id": "c97759d4-e525-4511-9b49-f6088cdc274b",
+              "name": "dis",
+              "value": "={{ $('Webhook').item.json.body.record.description }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        4576,
+        1200
+      ],
+      "id": "28935193-cb2d-4947-9908-e7c77169958c",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "upload",
+        "title": "={{ $json.title }}.",
+        "regionCode": "EG",
+        "categoryId": "20",
+        "options": {
+          "description": "={{ $json.dis }}",
+          "notifySubscribers": true,
+          "privacyStatus": "public"
+        }
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        5024,
+        1280
+      ],
+      "id": "1dc76b4a-0530-4bde-9720-34085fe83b4b",
+      "name": "Upload a video",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "prGgmUZ4MSPpxUM9",
+          "name": "YouTube account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Google Drive Trigger').item.json.id }}",
+          "mode": "id"
+        },
+        "driveId": {
+          "__rl": true,
+          "value": "1GiN8L4anrjc6NGgK12oFcLqVwApIZOyq",
+          "mode": "id"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root",
+          "cachedResultName": "/ (Root folder)"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        4752,
+        928
+      ],
+      "id": "593e27ce-367f-400f-be77-b29ea7ba1bc2",
+      "name": "Move file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "ngXLMa5ot75h5XjS",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/1444580962065477/videos",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "EAAQDJ3G1G78BSxuJ2FLV2UDRh6jKjdmFkKVe5zY5ZBOrmJVBnLAby4Riz3nIlBLwSqK1BG91HEAvR9pFZCL3Gl4WaxKwFxMCG4xThYFVf4nrXJ0XH1hvYV3lPw4631GxU9M7e57Btul0Mija8tDIh9IdgKstAlb97pZAassMRp6qle2zoGYIzZCEogGUIJyQNXAL"
+            },
+            {
+              "name": "description",
+              "value": "={{ ($json.fileName ? $json.fileName.split('.').slice(0, -1).join('.') : $json.name.split('.').slice(0, -1).join('.')) + ' #Shorts #Reels #TikTok' }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "source",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "description",
+              "value": "={{ $json.body.description }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        5008,
+        1040
+      ],
+      "id": "b5cef95f-96f8-4a28-84dc-f5e10a903ab5",
+      "name": "FB"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "daysInterval": 3
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        3040,
+        2336
+      ],
+      "id": "a13fe72c-7b85-433c-b835-fcb6c0d90a57",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "returnAll": true,
+        "filters": {
+          "channelId": "UCnyQQ2YLFk6PFU6ld79nJTA"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        3472,
+        2480
+      ],
+      "id": "0dc45083-a986-441e-b1d3-e457e2190062",
+      "name": "Get many videos",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "prGgmUZ4MSPpxUM9",
+          "name": "YouTube account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "get",
+        "videoId": "={{ $json['id.videoId'] }}",
+        "part": [
+          "*",
+          "statistics",
+          "snippet"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        4016,
+        2480
+      ],
+      "id": "0a141a7c-9997-4d3c-babd-b8d042d77df2",
+      "name": "Get a video",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "prGgmUZ4MSPpxUM9",
+          "name": "YouTube account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4576,
+        2272
+      ],
+      "id": "6ca97b27-48c0-4018-8d20-5df9eccce76f",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        4800,
+        2288
+      ],
+      "id": "94f53c0e-05d6-495c-b658-c244489446ff",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "url": "https://graph.facebook.com/v26.0/17841460513184687/media",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "id,caption,media_type"
+            },
+            {
+              "name": "access_token",
+              "value": "EAAQDJ3G1G78BSwZANXMWCtjZALLjvMjVYdt4rDKdIj3gGLrlZAevifre7c47ZCat0CgQTn5GnKP8iCDVzhzoXDaOuw9zZBoNjo3FBgr3PKLfyNor2TQu9jPId8hv8vcidA8jv8v0i8ZAXZAiouoZAVGbZClRZAthXYm3ExO1MtxOUPNRRVuuFdhRLHy9UH95yZBhQZDZD"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8de63dfe-eaed-4e42-8e51-9f9e83aae2f7",
+      "name": "HTTP Request - Get IG Media",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3456,
+        2096
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "id": "6f77ebfb-1ca0-4453-b9eb-3755d7e13520",
+      "name": "Split Out Data Array",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        3680,
+        2096
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a9f6f594-750a-4f20-abcc-c42030e68161",
+              "name": "video.id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "326e0052-f82a-4800-9cf4-d23919a9cc59",
+      "name": "Edit Fields - IDs Only",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3904,
+        2096
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://graph.facebook.com/v26.0/1444580962065477/videos",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "id,description,created_time"
+            },
+            {
+              "name": "access_token",
+              "value": "EAAQDJ3G1G78BSwZANXMWCtjZALLjvMjVYdt4rDKdIj3gGLrlZAevifre7c47ZCat0CgQTn5GnKP8iCDVzhzoXDaOuw9zZBoNjo3FBgr3PKLfyNor2TQu9jPId8hv8vcidA8jv8v0i8ZAXZAiouoZAVGbZClRZAthXYm3ExO1MtxOUPNRRVuuFdhRLHy9UH95yZBhQZDZD"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a78a72f9-9a13-4a61-aec5-f3b1f8820d85",
+      "name": "HTTP Request - Get FB Videos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3456,
+        2288
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "id": "bb9ddc0e-8229-4803-af07-e9afafdf8bed",
+      "name": "Split Out FB Data Array",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        3680,
+        2288
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fa26fb3a-2d55-4ace-9241-f02087366a68",
+              "name": "id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3c41b2dd-3fc6-4980-87bb-fc271c556f7f",
+      "name": "Edit Fields - FB Video IDs",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3904,
+        2288
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "id.videoId",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        3808,
+        2480
+      ],
+      "id": "fbe4ef16-8929-4eff-8cbd-7cf8fa2d12ea",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "snippet.title, snippet.description, statistics.viewCount, statistics.likeCount, statistics.dislikeCount, statistics.favoriteCount, statistics.commentCount,",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        32
+      ],
+      "id": "3565d875-8398-4044-aa17-f4fbd7ab07d9",
+      "name": "youtube insights"
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v26.0/{{ $json.video.id }}/insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "metric",
+              "value": "views,reach,total_interactions,likes,comments,shares,saved"
+            },
+            {
+              "name": "access_token",
+              "value": "EAAQDJ3G1G78BSwZANXMWCtjZALLjvMjVYdt4rDKdIj3gGLrlZAevifre7c47ZCat0CgQTn5GnKP8iCDVzhzoXDaOuw9zZBoNjo3FBgr3PKLfyNor2TQu9jPId8hv8vcidA8jv8v0i8ZAXZAiouoZAVGbZClRZAthXYm3ExO1MtxOUPNRRVuuFdhRLHy9UH95yZBhQZDZD"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1dc7610e-fda5-42e7-980a-11f07ccdc26c",
+      "name": "HTTP Request - Get IG Media1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4128,
+        2096
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v26.0/{{ $json.id }}/video_insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "metric",
+              "value": "fb_reels_total_plays,post_video_avg_time_watched,post_video_social_actions"
+            },
+            {
+              "name": "access_token",
+              "value": "EAAQDJ3G1G78BSxuJ2FLV2UDRh6jKjdmFkKVe5zY5ZBOrmJVBnLAby4Riz3nIlBLwSqK1BG91HEAvR9pFZCL3Gl4WaxKwFxMCG4xThYFVf4nrXJ0XH1hvYV3lPw4631GxU9M7e57Btul0Mija8tDIh9IdgKstAlb97pZAassMRp6qle2zoGYIzZCEogGUIJyQNXAL"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fb9ac97f-aadb-4278-adc7-68bf733dc29d",
+      "name": "HTTP Request - Get FB Videos1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4128,
+        2288
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\n\nfor (const inputItem of $input.all()) {\n  const metrics = inputItem.json.data || [];\n\n  let mediaId = '';\n  let views = 0;\n  let reach = 0;\n  let totalInteractions = 0;\n  let likes = 0;\n  let comments = 0;\n  let shares = 0;\n  let saved = 0;\n\n  for (const item of metrics) {\n    if (!mediaId && item.id) {\n      // Extracts the media ID from e.g. \"18182160208438909/insights/...\"\n      mediaId = item.id.split('/')[0];\n    }\n\n    const val = (item.values && item.values.length > 0) ? Number(item.values[0].value) || 0 : 0;\n\n    switch (item.name) {\n      case 'views':\n        views = val;\n        break;\n      case 'reach':\n        reach = val;\n        break;\n      case 'total_interactions':\n        totalInteractions = val;\n        break;\n      case 'likes':\n        likes = val;\n        break;\n      case 'comments':\n        comments = val;\n        break;\n      case 'shares':\n        shares = val;\n        break;\n      case 'saved':\n        saved = val;\n        break;\n    }\n  }\n\n  results.push({\n    json: {\n     \n      platform: 'instagram',\n      views: views,\n      reach: reach,\n      total_interactions: totalInteractions,\n      likes: likes,\n      comments: comments,\n      shares: shares,\n      saved: saved\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4352,
+        2096
+      ],
+      "id": "c489a453-378c-4897-8bfc-cdb9d7c0653b",
+      "name": "instagram filter"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Task:\nAnalyze the current social media metrics and compare them\nwith the previous two data submissions.\n\nContext:\nCurrent data:\n{{ JSON.stringify($json.current_data) }}\n\nPrevious reports:\n{{ JSON.stringify($json.previous_reports) }}\n\nRole:\nYou are a professional Social Media Performance Analyst.\n\nFormat:\nReturn a JSON object containing:\n{\n  \"subject\": \"Social Media Performance Report\",\n  \"body\": \"Professional email containing verified findings and recommendations.\"\n}\n\nTone:\nProfessional, concise, and analytical.\n\nConstraints:\n- Use only the supplied current and historical data.\n- Compare Instagram, Facebook, and YouTube metrics separately.\n- Match metrics by platform and metric name.\n- Never compare unrelated records or assume their chronological order.\n- Calculate percentage changes only when valid comparable values exist.\n- Never use previous AI-generated emails as historical data.\n- If historical data is unavailable, state this explicitly.\n- Return valid JSON only.",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        5968,
+        2288
+      ],
+      "id": "3caf21a7-7d4f-46ad-8b29-7331475122b9",
+      "name": "AI Agent",
+      "retryOnFail": true,
+      "waitBetweenTries": 999,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.8-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        5936,
+        2528
+      ],
+      "id": "ac342e26-c2d4-464a-9829-078f414ecc9f",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yLHl1yLD8RWBf1f8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "argamer2018@gmail.com",
+        "subject": "={{ $json.output.subject }}",
+        "message": "={{ $json.output.body }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        6496,
+        2336
+      ],
+      "id": "5d7c707f-39e0-433c-b2d0-9030c4415f57",
+      "name": "Send a message",
+      "webhookId": "c3b716e3-e39f-4325-8bc0-d4a1767aead5"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        6064,
+        2528
+      ],
+      "id": "a99982f3-6fd4-439c-80da-4b4e01f941d1",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yLHl1yLD8RWBf1f8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Helper to convert ISO 8601 duration (e.g. PT2M28S, PT18S) to total seconds\nfunction parseIsoDuration(durationStr) {\n  if (!durationStr) return 0;\n  const match = durationStr.match(/PT(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?/);\n  if (!match) return 0;\n  const hours = parseInt(match[1] || 0, 10);\n  const minutes = parseInt(match[2] || 0, 10);\n  const seconds = parseInt(match[3] || 0, 10);\n  return (hours * 3600) + (minutes * 60) + seconds;\n}\n\nconst results = [];\n\nfor (const item of $input.all()) {\n  const json = item.json;\n  const snippet = json.snippet || {};\n  const stats = json.statistics || {};\n  const content = json.contentDetails || {};\n\n  results.push({\n    json: {\n      \n      platform: 'youtube',\n      title: snippet.title || '',\n      views: Number(stats.viewCount) || 0,\n      likes: Number(stats.likeCount) || 0,\n      comments: Number(stats.commentCount) || 0,\n      duration_seconds: parseIsoDuration(content.duration),\n    \n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4352,
+        2480
+      ],
+      "id": "2e020052-cc22-4213-9fc3-c27d7b1f48d3",
+      "name": "filtering yt"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const metrics = $json.data || [];\n\nlet videoId = '';\nlet plays = 0;\nlet avgWatchTimeMs = 0;\nlet comments = 0;\nlet reactions = 0;\nlet shares = 0;\n\nfor (const item of metrics) {\n  if (!videoId && item.id) {\n    // Extracts the video ID from \"1925205605552411/video_insights/...\"\n    videoId = item.id.split('/')[0];\n  }\n\n  const firstValue = (item.values && item.values.length > 0) ? item.values[0].value : null;\n\n  switch (item.name) {\n    case 'fb_reels_total_plays':\n      plays = Number(firstValue) || 0;\n      break;\n\n    case 'post_video_avg_time_watched':\n      avgWatchTimeMs = Number(firstValue) || 0;\n      break;\n\n    case 'post_video_social_actions':\n      if (typeof firstValue === 'object' && firstValue !== null) {\n        comments = firstValue.COMMENT || 0;\n        shares = firstValue.SHARE || 0;\n        // Aggregates likes or explicit reaction keys if present\n        reactions = (firstValue.LIKE || 0) + (firstValue.REACTION || 0);\n      }\n      break;\n  }\n}\n\nreturn {\n  json: {\n    \n    platform: 'facebook',\n    plays: plays,\n    avg_watch_time_seconds: Number((avgWatchTimeMs / 1000).toFixed(2)),\n    comments: comments,\n    shares: shares,\n    reactions: reactions\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4352,
+        2288
+      ],
+      "id": "1ab0c344-27d4-4276-a385-78e66867d40c",
+      "name": "filtering fb"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"subject\": \"Social Media Performance Report\",\n  \"body\": \"Dear Team,\\n\\nHere is a summary of the latest social media performance.\\n\\nInstagram\\n- Views: 255 across 3 records.\\n- Reach: 220 across 3 records.\\n- Total interactions: 2, including 1 like and 1 comment.\\n\\nFacebook\\n- Total plays: 33 across 4 records.\\n- Average watch time varied between 0 and 22.64 seconds.\\n- Total comments: 2. No reactions or shares were recorded.\\n\\nYouTube\\n- The video \\\"blind spot.\\\" received 1 view, 1 like, and 1 comment.\\n- Video duration: 21 seconds.\\n\\nKey Takeaways\\n- Instagram recorded 255 views across the supplied records.\\n- Facebook generated 33 plays, with limited recorded engagement.\\n- Historical growth cannot be determined because report dates are unavailable.\\n\\nRecommended Actions\\n1. Test Instagram content formats to encourage more interactions.\\n2. Review Facebook video openings to encourage continued viewing.\\n3. Record dates for future reports to enable reliable performance comparisons.\\n\\nBest regards,\\nSocial Media Analytics Team\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        6192,
+        2528
+      ],
+      "id": "f99ae00c-2ca9-40ea-aa56-9c6374ce7bf6",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "const collectionTime = new Date().toISOString();\nconst allMetrics = $input.all().map(item => item.json);\n\nreturn [{\n  json: {\n    collected_at: collectionTime,\n    snapshot_data: JSON.stringify(allMetrics)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5024,
+        2288
+      ],
+      "id": "c0cccac0-d140-4693-b4a1-6eff73fe0064",
+      "name": "Prepare Snapshot Data"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1AslxtuQXFEzFhSP0qzCEkZnxSNvJw4V5oGKjA1k0Nwc",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1AslxtuQXFEzFhSP0qzCEkZnxSNvJw4V5oGKjA1k0Nwc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "collected_at": "={{ $json.collected_at }}",
+            "snapshot_data": "={{ $json.snapshot_data }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "collected_at",
+              "displayName": "collected_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "snapshot_data",
+              "displayName": "snapshot_data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        5248,
+        2288
+      ],
+      "id": "a049737c-3a84-4e7f-9b81-5de2d9f4616c",
+      "name": "Append Snapshot to Google Sheets"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1AslxtuQXFEzFhSP0qzCEkZnxSNvJw4V5oGKjA1k0Nwc",
+          "mode": "list",
+          "cachedResultName": "Untitled spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1AslxtuQXFEzFhSP0qzCEkZnxSNvJw4V5oGKjA1k0Nwc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1AslxtuQXFEzFhSP0qzCEkZnxSNvJw4V5oGKjA1k0Nwc/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        5472,
+        2288
+      ],
+      "id": "dfe5f8d9-7925-44ff-a996-29ca19137f2f",
+      "name": "Read History from Google Sheets"
+    },
+    {
+      "parameters": {
+        "jsCode": "const historyRows = $input.all().map(item => item.json);\nconst sorted = historyRows.sort((a, b) => new Date(b.collected_at) - new Date(a.collected_at));\n\n\nconst previousTwo = sorted.slice(1, 3);\n\nreturn [{\n  json: {\n    latest_snapshots: previousTwo\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5696,
+        2288
+      ],
+      "id": "263f1e96-3180-47ce-bf08-d7fc2f55e665",
+      "name": "Get Last 2 Snapshots"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "1AslxtuQXFEzFhSP0qzCEkZnxSNvJw4V5oGKjA1k0Nwc",
+          "mode": "list",
+          "cachedResultName": "Untitled spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1AslxtuQXFEzFhSP0qzCEkZnxSNvJw4V5oGKjA1k0Nwc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1262555933,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1AslxtuQXFEzFhSP0qzCEkZnxSNvJw4V5oGKjA1k0Nwc/edit#gid=1262555933"
+        },
+        "numberToDelete": 2
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        6064,
+        928
+      ],
+      "id": "26256c40-78cd-49df-9d0b-0450d3bcc676",
+      "name": "Delete rows or columns from sheet"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "new-video-submission",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        3840,
+        1120
+      ],
+      "id": "1ad30511-da82-4dc2-ae73-4d3c5880ace6",
+      "name": "Webhook",
+      "webhookId": "f4ebc25f-2151-4d6a-bb89-252edcf4fdd4"
+    },
+    {
+      "parameters": {
+        "source": "parameter",
+        "workflowJson": "{\n  \"nodes\": [\n    {\n      \"parameters\": {\n        \"inputSource\": \"passthrough\"\n      },\n      \"id\": \"c055762a-8fe7-4141-a639-df2372f30060\",\n      \"typeVersion\": 1.1,\n      \"name\": \"When Executed by Another Workflow\",\n      \"type\": \"n8n-nodes-base.executeWorkflowTrigger\",\n      \"position\": [\n        80,\n        320\n      ]\n    },\n    {\n      \"parameters\": {\n        \"method\": \"POST\",\n        \"url\": \"=https://graph.facebook.com/v21.0/17841460513184687/media\",\n        \"sendQuery\": true,\n        \"queryParameters\": {\n          \"parameters\": [\n            {\n              \"name\": \"media_type\",\n              \"value\": \"REELS\"\n            },\n            {\n              \"name\": \"upload_type\",\n              \"value\": \"resumable\"\n            },\n            {\n              \"name\": \"caption\"\n            },\n            {\n              \"name\": \"access_token\",\n              \"value\": \"EAAQDJ3G1G78BSwZANXMWCtjZALLjvMjVYdt4rDKdIj3gGLrlZAevifre7c47ZCat0CgQTn5GnKP8iCDVzhzoXDaOuw9zZBoNjo3FBgr3PKLfyNor2TQu9jPId8hv8vcidA8jv8v0i8ZAXZAiouoZAVGbZClRZAthXYm3ExO1MtxOUPNRRVuuFdhRLHy9UH95yZBhQZDZD\"\n            }\n          ]\n        },\n        \"options\": {}\n      },\n      \"id\": \"ef11c81e-0192-4835-9183-0754419c2529\",\n      \"name\": \"1. Initialize Resumable Container\",\n      \"type\": \"n8n-nodes-base.httpRequest\",\n      \"typeVersion\": 4.2,\n      \"position\": [\n        -1056,\n        624\n      ]\n    },\n    {\n      \"parameters\": {\n        \"method\": \"POST\",\n        \"url\": \"={{ $json.uri }}\",\n        \"sendHeaders\": true,\n        \"headerParameters\": {\n          \"parameters\": [\n            {\n              \"name\": \"Authorization\",\n              \"value\": \"=OAuth EAAQDJ3G1G78BSwZANXMWCtjZALLjvMjVYdt4rDKdIj3gGLrlZAevifre7c47ZCat0CgQTn5GnKP8iCDVzhzoXDaOuw9zZBoNjo3FBgr3PKLfyNor2TQu9jPId8hv8vcidA8jv8v0i8ZAXZAiouoZAVGbZClRZAthXYm3ExO1MtxOUPNRRVuuFdhRLHy9UH95yZBhQZDZD\"\n            },\n            {\n              \"name\": \"offset\",\n              \"value\": \"0\"\n            },\n            {\n              \"name\": \"X-Entity-Length\",\n              \"value\": \"={{ $json.file_size_bytes }}\"\n            }\n          ]\n        },\n        \"sendBody\": true,\n        \"contentType\": \"binaryData\",\n        \"inputDataFieldName\": \"data\",\n        \"options\": {}\n      },\n      \"id\": \"66414905-6dc2-4e76-a290-dd9d69822a6f\",\n      \"name\": \"2. Upload Binary File\",\n      \"type\": \"n8n-nodes-base.httpRequest\",\n      \"typeVersion\": 4.2,\n      \"position\": [\n        -592,\n        624\n      ]\n    },\n    {\n      \"parameters\": {\n        \"amount\": 10\n      },\n      \"id\": \"6af2a08e-d1ff-46dd-b1b2-b585b794644b\",\n      \"name\": \"3. Wait for Processing\",\n      \"type\": \"n8n-nodes-base.wait\",\n      \"typeVersion\": 1.1,\n      \"position\": [\n        -368,\n        624\n      ],\n      \"webhookId\": \"custom-wait-webhook\"\n    },\n    {\n      \"parameters\": {\n        \"url\": \"=https://graph.facebook.com/v21.0/{{ $('1. Initialize Resumable Container').item.json.id }}\",\n        \"sendQuery\": true,\n        \"queryParameters\": {\n          \"parameters\": [\n            {\n              \"name\": \"fields\",\n              \"value\": \"status_code,status\"\n            },\n            {\n              \"name\": \"access_token\",\n              \"value\": \"EAAQDJ3G1G78BSwZANXMWCtjZALLjvMjVYdt4rDKdIj3gGLrlZAevifre7c47ZCat0CgQTn5GnKP8iCDVzhzoXDaOuw9zZBoNjo3FBgr3PKLfyNor2TQu9jPId8hv8vcidA8jv8v0i8ZAXZAiouoZAVGbZClRZAthXYm3ExO1MtxOUPNRRVuuFdhRLHy9UH95yZBhQZDZD\"\n            }\n          ]\n        },\n        \"options\": {}\n      },\n      \"id\": \"ccc731ca-4287-4f6f-a7ab-355e8097e6d4\",\n      \"name\": \"4. Check Container Status\",\n      \"type\": \"n8n-nodes-base.httpRequest\",\n      \"typeVersion\": 4.2,\n      \"position\": [\n        -144,\n        624\n      ]\n    },\n    {\n      \"parameters\": {\n        \"conditions\": {\n          \"options\": {\n            \"caseSensitive\": true,\n            \"leftValue\": \"\",\n            \"typeValidation\": \"strict\",\n            \"version\": 2\n          },\n          \"conditions\": [\n            {\n              \"id\": \"cond-status-finished\",\n              \"leftValue\": \"={{ $json.status_code }}\",\n              \"rightValue\": \"FINISHED\",\n              \"operator\": {\n                \"type\": \"string\",\n                \"operation\": \"equals\"\n              }\n            }\n          ],\n          \"combinator\": \"and\"\n        },\n        \"options\": {}\n      },\n      \"id\": \"c848856b-a7ef-4013-803f-0dea58a9ee87\",\n      \"name\": \"5. Is Processing Finished?\",\n      \"type\": \"n8n-nodes-base.if\",\n      \"typeVersion\": 2.2,\n      \"position\": [\n        64,\n        624\n      ]\n    },\n    {\n      \"parameters\": {\n        \"method\": \"POST\",\n        \"url\": \"=https://graph.facebook.com/v21.0/17841460513184687/media_publish\",\n        \"sendQuery\": true,\n        \"queryParameters\": {\n          \"parameters\": [\n            {\n              \"name\": \"creation_id\",\n              \"value\": \"={{ $('1. Initialize Resumable Container').item.json.id }}\"\n            },\n            {\n              \"name\": \"access_token\",\n              \"value\": \"EAAQDJ3G1G78BSwZANXMWCtjZALLjvMjVYdt4rDKdIj3gGLrlZAevifre7c47ZCat0CgQTn5GnKP8iCDVzhzoXDaOuw9zZBoNjo3FBgr3PKLfyNor2TQu9jPId8hv8vcidA8jv8v0i8ZAXZAiouoZAVGbZClRZAthXYm3ExO1MtxOUPNRRVuuFdhRLHy9UH95yZBhQZDZD\"\n            }\n          ]\n        },\n        \"options\": {}\n      },\n      \"id\": \"ac6d51c4-d713-44e1-bf15-3e83b9869007\",\n      \"name\": \"6. Publish Reel\",\n      \"type\": \"n8n-nodes-base.httpRequest\",\n      \"typeVersion\": 4.2,\n      \"position\": [\n        304,\n        544\n      ]\n    },\n    {\n      \"parameters\": {\n        \"jsCode\": \"const triggerNode = $('When Executed by Another Workflow').first();\\nconst binaryEntry = triggerNode.binary.data;\\n\\n// Extract exact byte length for Meta's X-Entity-Length header\\nconst buffer = Buffer.from(binaryEntry.data, 'base64');\\nconst fileSizeBytes = buffer.length;\\n\\nreturn [\\n  {\\n    json: {\\n      ...$input.first().json,\\n      file_size_bytes: fileSizeBytes,\\n      // Pass along caption/title from parent if needed\\n      caption: triggerNode.json.dis || triggerNode.json.caption || ''\\n    },\\n    binary: {\\n      data: binaryEntry\\n    }\\n  }\\n];\"\n      },\n      \"type\": \"n8n-nodes-base.code\",\n      \"typeVersion\": 2,\n      \"position\": [\n        -816,\n        624\n      ],\n      \"id\": \"b87f15ba-053d-498c-8fb8-f17e3811756b\",\n      \"name\": \"Code in JavaScript\"\n    }\n  ],\n  \"connections\": {\n    \"When Executed by Another Workflow\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"1. Initialize Resumable Container\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"1. Initialize Resumable Container\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"Code in JavaScript\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"2. Upload Binary File\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"3. Wait for Processing\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"3. Wait for Processing\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"4. Check Container Status\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"4. Check Container Status\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"5. Is Processing Finished?\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"5. Is Processing Finished?\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"6. Publish Reel\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ],\n        [\n          {\n            \"node\": \"3. Wait for Processing\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    },\n    \"Code in JavaScript\": {\n      \"main\": [\n        [\n          {\n            \"node\": \"2. Upload Binary File\",\n            \"type\": \"main\",\n            \"index\": 0\n          }\n        ]\n      ]\n    }\n  },\n  \"pinData\": {},\n  \"meta\": {\n    \"instanceId\": \"d87de5defab23c9f40e196db62cdeb953aa5a07db815d3bd99c2baec76145cbe\"\n  }\n}",
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.4,
+      "position": [
+        5024,
+        1520
+      ],
+      "id": "89fb723c-6425-4d3f-88e5-06575fd04edd",
+      "name": "ING PUBLISH "
+    }
+  ],
+  "pinData": {
+    "Aggregate": [
+      {
+        "json": {
+          "data": [
+            {
+              "platform": "instagram",
+              "views": 129,
+              "reach": 110,
+              "total_interactions": 0,
+              "likes": 0,
+              "comments": 0,
+              "shares": 0,
+              "saved": 0
+            },
+            {
+              "platform": "instagram",
+              "views": 126,
+              "reach": 113,
+              "total_interactions": 0,
+              "likes": 0,
+              "comments": 0,
+              "shares": 0,
+              "saved": 0
+            },
+            {
+              "platform": "instagram",
+              "views": 2,
+              "reach": 1,
+              "total_interactions": 2,
+              "likes": 1,
+              "comments": 1,
+              "shares": 0,
+              "saved": 0
+            },
+            {
+              "platform": "youtube",
+              "title": "blind spot.",
+              "views": 1,
+              "likes": 1,
+              "comments": 1,
+              "duration_seconds": 21
+            },
+            {
+              "platform": "facebook",
+              "plays": 0,
+              "avg_watch_time_seconds": 0,
+              "comments": 0,
+              "shares": 0,
+              "reactions": 0
+            },
+            {
+              "platform": "facebook",
+              "plays": 4,
+              "avg_watch_time_seconds": 7.26,
+              "comments": 0,
+              "shares": 0,
+              "reactions": 0
+            },
+            {
+              "platform": "facebook",
+              "plays": 6,
+              "avg_watch_time_seconds": 22.64,
+              "comments": 1,
+              "shares": 0,
+              "reactions": 0
+            },
+            {
+              "platform": "facebook",
+              "plays": 23,
+              "avg_watch_time_seconds": 9.63,
+              "comments": 1,
+              "shares": 0,
+              "reactions": 0
+            }
+          ]
+        },
+        "pairedItem": [
+          {
+            "item": 0
+          },
+          {
+            "item": 1
+          },
+          {
+            "item": 2
+          },
+          {
+            "item": 3
+          },
+          {
+            "item": 4
+          },
+          {
+            "item": 5
+          },
+          {
+            "item": 6
+          },
+          {
+            "item": 7
+          }
+        ]
+      }
+    ]
+  },
+  "connections": {
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Upload a video",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "FB",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Move file",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ING PUBLISH ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many videos": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Get IG Media",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request - Get FB Videos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get many videos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a video": {
+      "main": [
+        [
+          {
+            "node": "filtering yt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Prepare Snapshot Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Get IG Media": {
+      "main": [
+        [
+          {
+            "node": "Split Out Data Array",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out Data Array": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields - IDs Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Get FB Videos": {
+      "main": [
+        [
+          {
+            "node": "Split Out FB Data Array",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out FB Data Array": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields - FB Video IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Get a video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields - FB Video IDs": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Get FB Videos1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields - IDs Only": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Get IG Media1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Get FB Videos1": {
+      "main": [
+        [
+          {
+            "node": "filtering fb",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Get IG Media1": {
+      "main": [
+        [
+          {
+            "node": "instagram filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "instagram filter": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "filtering yt": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "filtering fb": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Snapshot Data": {
+      "main": [
+        [
+          {
+            "node": "Append Snapshot to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Snapshot to Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Read History from Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read History from Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Get Last 2 Snapshots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Last 2 Snapshots": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move file": {
+      "main": [
+        [
+          {
+            "node": "Delete rows or columns from sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ING PUBLISH ": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "f644f82d-1be0-4441-967e-c9dbdf86c0c3",
+  "meta": {
+    "instanceId": "d87de5defab23c9f40e196db62cdeb953aa5a07db815d3bd99c2baec76145cbe"
+  },
+  "nodeGroups": [],
+  "id": "RUCXHpvC97QY4swc",
+  "tags": []
+}
