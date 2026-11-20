@@ -19,6 +19,8 @@ credentials.json
 *.local.json
 instagram_subworkflow.json
 final core*.json
+archive/
+
 
 # Helper and test scripts
 audit_secrets.py
