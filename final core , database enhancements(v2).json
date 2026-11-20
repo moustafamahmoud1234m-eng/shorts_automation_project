@@ -1,0 +1,1845 @@
+{
+  "name": "final core , database enhancements(v2)",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.body.drive_file_id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1568,
+        128
+      ],
+      "id": "78a06786-d5c0-4de5-a554-5f28af8dfaa0",
+      "name": "Download file"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        -1792,
+        128
+      ],
+      "id": "fecc6f1c-afde-40e8-a2cd-167c6f80e326",
+      "name": "Webhook",
+      "webhookId": "f4ebc25f-2151-4d6a-bb89-252edcf4fdd4"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/tmp/input.mp4",
+        "options": {}
+      },
+      "id": "45745a92-733b-49fc-96e4-41e03c121ac6",
+      "name": "Save Video to /tmp",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -1344,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "command": "=ffmpeg -y {{ ($('Webhook').first().json.body?.reel_properties?.edit?.trim?.start_seconds || $('Webhook').first().json.body?.reel_properties?.edit?.trim_start_seconds) ? '-ss ' + ($('Webhook').first().json.body?.reel_properties?.edit?.trim?.start_seconds || $('Webhook').first().json.body?.reel_properties?.edit?.trim_start_seconds) : '' }} {{ ($('Webhook').first().json.body?.reel_properties?.edit?.trim?.end_seconds || $('Webhook').first().json.body?.reel_properties?.edit?.trim_end_seconds) ? '-to ' + ($('Webhook').first().json.body?.reel_properties?.edit?.trim?.end_seconds || $('Webhook').first().json.body?.reel_properties?.edit?.trim_end_seconds) : '' }} -i /tmp/input.mp4 -c:v libx264 -crf 23 -preset fast -pix_fmt yuv420p -vf \"{{ $('Webhook').first().json.body?.reel_properties?.edit?.crop?.ratio === '9:16' ? 'scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920' : ($('Webhook').first().json.body?.reel_properties?.edit?.crop?.ratio === '1:1' ? 'scale=1080:1080:force_original_aspect_ratio=increase,crop=1080:1080' : ($('Webhook').first().json.body?.reel_properties?.edit?.crop?.ratio === '16:9' ? 'scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080' : 'scale=\\'min(1080,iw)\\':-2')) }}\" {{ $('Webhook').first().json.body?.reel_properties?.edit?.sound?.sound_on === false ? '-an' : '-c:a aac -b:a 128k' }} -movflags +faststart /tmp/output.mp4"
+      },
+      "id": "c16f594e-0958-41dd-992f-bc31b162644a",
+      "name": "FFmpeg Compress",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -1120,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/tmp/output.mp4",
+        "options": {}
+      },
+      "id": "24fe1562-5dd4-4807-8923-8dd575d9ee89",
+      "name": "Read Compressed Video",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -896,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "command": "=rm -f /tmp/input.mp4 /tmp/output.mp4"
+      },
+      "id": "d4bbd60c-c3c5-4068-8b23-1b001eba433a",
+      "name": "Cleanup Temp Files",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -672,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "upload",
+        "title": "={{ $json.title }}",
+        "regionCode": "EG",
+        "categoryId": "20",
+        "options": {
+          "description": "={{ $json.dis }}",
+          "notifySubscribers": true,
+          "privacyStatus": "public"
+        }
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        0,
+        192
+      ],
+      "id": "abb796d7-3eb5-4d40-8262-bd02de9a545b",
+      "name": "Upload a video1",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "owSSGXqClkk52lbp",
+          "name": "YouTube account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/1444580962065477/videos",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "REDACTED"
+            },
+            {
+              "name": "description",
+              "value": "={{ $('Webhook').first().json.body?.description || ($json.title || $json.dis || 'Video') }}"
+            },
+            {
+              "name": "published",
+              "value": "={{ !$('Webhook').first().json.body?.reel_properties?.scheduling?.is_scheduled }}"
+            },
+            {
+              "name": "scheduled_publish_time",
+              "value": "={{ $('Webhook').first().json.body?.reel_properties?.scheduling?.publish_time_unix || null }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "source",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e9b6c554-dd8b-4637-9f68-1b21f516ff2c",
+      "name": "FB1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d10ad7b7-e755-43b8-a197-69dc0e304661",
+              "name": "title",
+              "value": "={{ $('Webhook').first().json.body?.title || $('Webhook').first().json.body?.record?.title || $json.title || 'My Video' }}",
+              "type": "string"
+            },
+            {
+              "id": "c97759d4-e525-4511-9b49-f6088cdc274b",
+              "name": "dis",
+              "value": "={{ $('Webhook').first().json.body?.description || $('Webhook').first().json.body?.record?.description || $json.description || $json.dis || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -448,
+        192
+      ],
+      "id": "b7fece20-0f28-4407-9c00-29c5719b0780",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://ymyhyoqcnscdginwxxkz.supabase.co/storage/v1/object/instagram-videos/reel_{{ $('Webhook').first().json.body?.drive_file_id || Date.now() }}.mp4",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "REDACTED"
+            },
+            {
+              "name": "apikey",
+              "value": "REDACTED"
+            },
+            {
+              "name": "Content-Type",
+              "value": "video/mp4"
+            },
+            {
+              "name": "x-upsert",
+              "value": "true"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        384
+      ],
+      "id": "fbd5308b-352e-4edf-b8e5-d7cd488a9824",
+      "name": "1. Upload to Supabase"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/17841460513184687/media",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "media_type",
+              "value": "REELS"
+            },
+            {
+              "name": "video_url",
+              "value": "=https://ymyhyoqcnscdginwxxkz.supabase.co/storage/v1/object/public/instagram-videos/reel_{{ $('Webhook').first().json.body?.drive_file_id || Date.now() }}.mp4"
+            },
+            {
+              "name": "caption",
+              "value": "={{ $('Webhook').first().json.body?.description || $json.dis || $json.title || '' }}"
+            },
+            {
+              "name": "access_token",
+              "value": "REDACTED"
+            },
+            {
+              "name": "is_ai_generated",
+              "value": "={{ $('Webhook').first().json.body?.reel_properties?.metadata?.is_ai_generated ? true : false }}"
+            },
+            {
+              "name": "share_to_feed",
+              "value": "={{ $('Webhook').first().json.body?.reel_properties?.advanced?.share_to_feed ?? true }}"
+            },
+            {
+              "name": "thumb_offset",
+              "value": "={{ $('Webhook').first().json.body?.reel_properties?.edit?.cover?.thumb_offset_ms || 1500 }}"
+            },
+            {
+              "name": "published",
+              "value": "={{ !$('Webhook').first().json.body?.reel_properties?.scheduling?.is_scheduled }}"
+            },
+            {
+              "name": "scheduled_publish_time",
+              "value": "={{ $('Webhook').first().json.body?.reel_properties?.scheduling?.publish_time_unix || null }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0a076b00-145d-4101-87f0-8ec63ab41781",
+      "name": "2. Create Reel Container",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        224,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "id": "e4c84f55-c958-4721-8dd2-d71735fa01df",
+      "name": "3. Wait for Video Processing",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        384
+      ],
+      "webhookId": "84272396-8a8f-4ade-9d7f-8ade7a8aeeb1"
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v21.0/{{ $('2. Create Reel Container').item.json.id }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "status_code,status"
+            },
+            {
+              "name": "access_token",
+              "value": "REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "70442e0e-a6aa-4ebb-8e20-1be42cf938aa",
+      "name": "4. Check Container Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        672,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "is-ready-condition",
+              "leftValue": "={{ $json.status_code }}",
+              "rightValue": "FINISHED",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ed942eae-32bd-4a9d-bf3d-0d24c04b5ecc",
+      "name": "5. Is Processing Finished?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/17841460513184687/media_publish",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "creation_id",
+              "value": "={{ $('2. Create Reel Container').item.json.id }}"
+            },
+            {
+              "name": "access_token",
+              "value": "REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "32ce56d6-6646-4f89-b3f9-ba88c9ae94c6",
+      "name": "6. Publish Reel",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Webhook').item.json.body.facebook }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    },
+                    "id": "4dfc0c84-a8ff-46a3-943a-28c714c0e751"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "85afe7a9-3f81-46b5-8ad5-860699571344",
+                    "leftValue": "={{ $('Webhook').item.json.body.youtube }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "1087bb83-b30b-4466-9d4c-2bdecc53045c",
+                    "leftValue": "={{ $('Webhook').item.json.body.instagram }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "allMatchingOutputs": true
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -224,
+        176
+      ],
+      "id": "2815e155-387e-49f2-b99f-96df9c04b7db",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "daysInterval": 3
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -2032,
+        1312
+      ],
+      "id": "015647bc-dbf6-40cd-b194-abe92d0e46c5",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v21.0/{{ $json['instagram id'] }}/insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "metric",
+              "value": "views,reach,total_interactions,likes,comments,shares,saved"
+            },
+            {
+              "name": "access_token",
+              "value": "REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cf280933-3e5b-44c1-bf0d-1cbd9f7329a0",
+      "name": "HTTP Request - Get IG Media1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1520,
+        1120
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\nfor (const inputItem of $input.all()) {\n  const metrics = inputItem.json?.data || [];\n  if (!metrics || metrics.length === 0) continue;\n\n  let mediaId = '';\n  let views = 0;\n  let reach = 0;\n  let totalInteractions = 0;\n  let likes = 0;\n  let comments = 0;\n  let shares = 0;\n  let saved = 0;\n\n  for (const item of metrics) {\n    if (!mediaId && item.id) {\n      mediaId = item.id.split('/')[0];\n    }\n    const val = (item.values && item.values.length > 0) ? Number(item.values[0].value) || 0 : 0;\n    switch (item.name) {\n      case 'views': views = val; break;\n      case 'reach': reach = val; break;\n      case 'total_interactions': totalInteractions = val; break;\n      case 'likes': likes = val; break;\n      case 'comments': comments = val; break;\n      case 'shares': shares = val; break;\n      case 'saved': saved = val; break;\n    }\n  }\n\n  results.push({\n    json: {\n      platform: 'instagram',\n      video_id: mediaId,\n      views,\n      reach,\n      total_interactions: totalInteractions,\n      likes,\n      comments,\n      shares,\n      saved\n    }\n  });\n}\n\nif (results.length === 0) {\n  return [{ json: { platform: 'instagram', video_id: 'none', views: 0, reach: 0, total_interactions: 0, likes: 0, comments: 0, shares: 0, saved: 0, note: 'No videos uploaded in the past 3 days' } }];\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1248,
+        1120
+      ],
+      "id": "714187ff-e4f6-46d3-8eda-a7bebab3e9cc",
+      "name": "instagram filter"
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v21.0/{{ $json['facebook id'] }}/video_insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "metric",
+              "value": "fb_reels_total_plays,post_video_avg_time_watched,post_video_social_actions"
+            },
+            {
+              "name": "access_token",
+              "value": "REDACTED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "025b73d7-e9bf-4749-9c62-304aca357417",
+      "name": "HTTP Request - Get FB Videos1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1520,
+        1312
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\nfor (const inputItem of $input.all()) {\n  const metrics = inputItem.json?.data || [];\n  if (!metrics || metrics.length === 0) continue;\n\n  let videoId = '';\n  let plays = 0;\n  let avgWatchTimeMs = 0;\n  let comments = 0;\n  let reactions = 0;\n  let shares = 0;\n\n  for (const item of metrics) {\n    if (!videoId && item.id) {\n      videoId = item.id.split('/')[0];\n    }\n    const firstValue = (item.values && item.values.length > 0) ? item.values[0].value : null;\n    switch (item.name) {\n      case 'fb_reels_total_plays':\n        plays = Number(firstValue) || 0;\n        break;\n      case 'post_video_avg_time_watched':\n        avgWatchTimeMs = Number(firstValue) || 0;\n        break;\n      case 'post_video_social_actions':\n        if (typeof firstValue === 'object' && firstValue !== null) {\n          comments = firstValue.COMMENT || 0;\n          shares = firstValue.SHARE || 0;\n          reactions = (firstValue.LIKE || 0) + (firstValue.REACTION || 0);\n        }\n        break;\n    }\n  }\n\n  results.push({\n    json: {\n      platform: 'facebook',\n      video_id: videoId,\n      plays,\n      avg_watch_time_seconds: Number((avgWatchTimeMs / 1000).toFixed(2)),\n      comments,\n      shares,\n      reactions\n    }\n  });\n}\n\nif (results.length === 0) {\n  return [{ json: { platform: 'facebook', video_id: 'none', plays: 0, avg_watch_time_seconds: 0, comments: 0, shares: 0, reactions: 0, note: 'No videos uploaded in the past 3 days' } }];\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1248,
+        1312
+      ],
+      "id": "57146e4b-fe21-43be-9a1e-aa5be12b243b",
+      "name": "filtering fb"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "get",
+        "videoId": "={{ $json['youtube id'] }}",
+        "part": [
+          "*",
+          "statistics",
+          "snippet"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        -1520,
+        1504
+      ],
+      "id": "57b1799c-826b-437d-bf83-36c548dcfce1",
+      "name": "Get a video",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "owSSGXqClkk52lbp",
+          "name": "YouTube account"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "function parseIsoDuration(durationStr) {\n  if (!durationStr) return 0;\n  const match = durationStr.match(/PT(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?/);\n  if (!match) return 0;\n  const hours = parseInt(match[1] || 0, 10);\n  const minutes = parseInt(match[2] || 0, 10);\n  const seconds = parseInt(match[3] || 0, 10);\n  return (hours * 3600) + (minutes * 60) + seconds;\n}\n\nconst results = [];\nfor (const item of $input.all()) {\n  const json = item.json || {};\n  if (!json.snippet && !json.statistics) continue;\n  const snippet = json.snippet || {};\n  const stats = json.statistics || {};\n  const content = json.contentDetails || {};\n\n  results.push({\n    json: {\n      platform: 'youtube',\n      video_id: json.id || 'unknown',\n      title: snippet.title || '',\n      views: Number(stats.viewCount) || 0,\n      likes: Number(stats.likeCount) || 0,\n      comments: Number(stats.commentCount) || 0,\n      duration_seconds: parseIsoDuration(content.duration)\n    }\n  });\n}\n\nif (results.length === 0) {\n  return [{ json: { platform: 'youtube', video_id: 'none', title: 'None', views: 0, likes: 0, comments: 0, duration_seconds: 0, note: 'No videos uploaded in the past 3 days' } }];\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1248,
+        1504
+      ],
+      "id": "96e06a7d-c741-4633-9f26-7848c62e39ae",
+      "name": "filtering yt"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -992,
+        1312
+      ],
+      "id": "ce595987-bfb5-40d1-aba9-a436bcfd2fe5",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -768,
+        1312
+      ],
+      "id": "aa10c012-7fc5-4ce2-aab4-54c7084ef634",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "jsCode": "const collectionTime = new Date().toISOString();\nconst allMetrics = $input.all().map(item => item.json);\n\nreturn [{\n  json: {\n    collected_at: collectionTime,\n    snapshot_data: JSON.stringify(allMetrics)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        1312
+      ],
+      "id": "a7a75579-c893-4b12-90b7-6af03cc574d7",
+      "name": "Prepare Snapshot Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const currentItems = $('Aggregate').first().json.data || [];\nconst historyRows = $input.all().map(item => item.json);\n\nconst sorted = historyRows\n  .filter(r => r.collected_at || r['collected at'])\n  .sort((a, b) => new Date(b.collected_at || b['collected at']) - new Date(a.collected_at || a['collected at']));\n\nconst currentTimestamp = $('Prepare Snapshot Data').first().json.collected_at;\nconst previousRows = sorted.filter(r => (r.collected_at || r['collected at']) !== currentTimestamp).slice(0, 2);\n\nfunction safeParse(val) {\n  if (!val) return [];\n  if (Array.isArray(val)) return val;\n  if (typeof val === 'object') return val;\n  try { return JSON.parse(val); } catch (e) {\n    return [];\n  }\n}\n\nconst prevSnapshots = previousRows.map(r => ({\n  collected_at: r.collected_at || r['collected at'],\n  records: safeParse(r.snapshot_data)\n}));\n\nconst igCurrent = currentItems.filter(i => i.platform === 'instagram');\nconst fbCurrent = currentItems.filter(i => i.platform === 'facebook');\nconst ytCurrent = currentItems.filter(i => i.platform === 'youtube');\n\nconst igHistory = prevSnapshots.map(s => ({\n  collected_at: s.collected_at,\n  records: s.records.filter(i => i.platform === 'instagram')\n}));\n\nconst fbHistory = prevSnapshots.map(s => ({\n  collected_at: s.collected_at,\n  records: s.records.filter(i => i.platform === 'facebook')\n}));\n\nconst ytHistory = prevSnapshots.map(s => ({\n  collected_at: s.collected_at,\n  records: s.records.filter(i => i.platform === 'youtube')\n}));\n\nreturn [{\n  json: {\n    instagram: { current: igCurrent, history: igHistory },\n    facebook: { current: fbCurrent, history: fbHistory },\n    youtube: { current: ytCurrent, history: ytHistory }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        112,
+        1312
+      ],
+      "id": "bdbe425c-27af-4e89-b30b-746ae4b166c9",
+      "name": "Separate Platform Data & History"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Task:\nAnalyze current Instagram Reels metrics and compare them with previous historical snapshots.\n\nRole:\nYou are an expert Instagram Reels Analytics Specialist. Your ONLY responsibility is Instagram. Do NOT mention or invent metrics for any other platform.\n\nCurrent Instagram Data:\n{{ JSON.stringify($json.instagram.current) }}\n\nPrevious Instagram Snapshots:\n{{ JSON.stringify($json.instagram.history) }}\n\nGuidelines:\n1. Analyze each reel by its video_id, noting views (plays), reach, interactions, likes, comments, shares, and saves.\n2. If no videos were uploaded (or 0 views), state this clearly.\n3. Compare against previous snapshots if available; state exact percentage changes or state that history is insufficient.\n4. Provide 2 actionable recommendations for hooks, captions, and reel format.\n\nFormat:\nReturn a concise, professional markdown report under the heading '### 📸 Instagram Performance Report'.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        368,
+        1008
+      ],
+      "id": "1b1fd484-7c00-406e-be76-5094bd92ae91",
+      "name": "Instagram Specialist AI",
+      "retryOnFail": true,
+      "waitBetweenTries": 999,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "model": "beam",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        368,
+        816
+      ],
+      "id": "2a330a26-593b-4f3f-ba5c-28723246809f",
+      "name": "Ollama - Instagram",
+      "credentials": {
+        "ollamaApi": {
+          "id": "MwxAplz88PXahkQx",
+          "name": "Ollama account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Task:\nAnalyze current Facebook Video/Reels metrics and compare them with previous historical snapshots.\n\nRole:\nYou are an expert Facebook Video Analytics Specialist. Your ONLY responsibility is Facebook. Do NOT mention or invent metrics for any other platform.\n\nCurrent Facebook Data:\n{{ JSON.stringify($json.facebook.current) }}\n\nPrevious Facebook Snapshots:\n{{ JSON.stringify($json.facebook.history) }}\n\nGuidelines:\n1. Analyze each video by its video_id, noting plays, average watch time (seconds), comments, shares, and reactions.\n2. If no videos were uploaded, state this clearly.\n3. Compare against previous snapshots if available; calculate changes or state that history is insufficient.\n4. Provide 2 actionable recommendations to increase watch time and comment discussions.\n\nFormat:\nReturn a concise, professional markdown report under the heading '### 🔵 Facebook Video Performance Report'.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        368,
+        1312
+      ],
+      "id": "0966eabd-f543-492a-9cda-b30d0eac1165",
+      "name": "Facebook Specialist AI",
+      "retryOnFail": true,
+      "waitBetweenTries": 999,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "model": "beam",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        368,
+        1488
+      ],
+      "id": "90fb3c47-290a-4db5-86e8-e005710ae924",
+      "name": "Ollama - Facebook",
+      "credentials": {
+        "ollamaApi": {
+          "id": "MwxAplz88PXahkQx",
+          "name": "Ollama account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Task:\nAnalyze current YouTube video metrics and compare them with previous historical snapshots.\n\nRole:\nYou are an expert YouTube Analytics Strategist. Your ONLY responsibility is YouTube. Do NOT mention or invent metrics for any other platform.\n\nCurrent YouTube Data:\n{{ JSON.stringify($json.youtube.current) }}\n\nPrevious YouTube Snapshots:\n{{ JSON.stringify($json.youtube.history) }}\n\nGuidelines:\n1. Analyze each video by its title and video_id, noting views, likes, comments, and duration.\n2. If no videos were uploaded, state this clearly.\n3. Compare against previous snapshots if available; calculate changes or state that history is insufficient.\n4. Provide 2 actionable recommendations for YouTube title framing, length, and viewer retention.\n\nFormat:\nReturn a concise, professional markdown report under the heading '### 🔴 YouTube Performance Report'.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        368,
+        1696
+      ],
+      "id": "6a6434cb-2315-4f18-baa2-0f9129a7e963",
+      "name": "YouTube Specialist AI",
+      "retryOnFail": true,
+      "waitBetweenTries": 999,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "model": "beam",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        368,
+        1872
+      ],
+      "id": "30bae338-c813-4a95-b7d9-6e4499220326",
+      "name": "Ollama - YouTube",
+      "credentials": {
+        "ollamaApi": {
+          "id": "MwxAplz88PXahkQx",
+          "name": "Ollama account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        640,
+        1312
+      ],
+      "id": "8d642ad0-a07d-4ed1-9531-743b30ccea5f",
+      "name": "Merge Specialist Reports"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nlet igReport = '';\nlet fbReport = '';\nlet ytReport = '';\n\nfor (const item of items) {\n  const text = item.json.output || item.json.text || JSON.stringify(item.json);\n  if (text.includes('Instagram')) {\n    igReport = text;\n  } else if (text.includes('Facebook')) {\n    fbReport = text;\n  } else if (text.includes('YouTube')) {\n    ytReport = text;\n  }\n}\n\nif (!igReport && items[0]) igReport = items[0].json.output || items[0].json.text || '';\nif (!fbReport && items[1]) fbReport = items[1].json.output || items[1].json.text || '';\nif (!ytReport && items[2]) ytReport = items[2].json.output || items[2].json.text || '';\n\nreturn [{\n  json: {\n    instagram_report: igReport,\n    facebook_report: fbReport,\n    youtube_report: ytReport\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        864,
+        1312
+      ],
+      "id": "0a235224-b7a0-4f66-a218-d7c7bb12416d",
+      "name": "Combine Specialist Reports"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Task:\nYou are the Chief Social Media Strategist.\nYou have received 3 independent, verified reports from your platform specialists (Instagram, Facebook, YouTube).\n\nSpecialist Reports:\nInstagram Report:\n{{ $json.instagram_report }}\n\nFacebook Report:\n{{ $json.facebook_report }}\n\nYouTube Report:\n{{ $json.youtube_report }}\n\nObjective:\nSynthesize these 3 reports into a high-level executive performance email.\n\nFormat:\nReturn a JSON object containing:\n{\n  \"subject\": \"Social Media Performance Report (Past 3 Days)\",\n  \"body\": \"Professional email with executive summary, highlights per channel, and actionable next steps.\"\n}\n\nEmail Body Structure:\n1. Executive Summary: What was the overarching trend across all channels?\n2. Instagram Highlights: Summary of findings from the Instagram specialist.\n3. Facebook Highlights: Summary of findings from the Facebook specialist.\n4. YouTube Highlights: Summary of findings from the YouTube specialist.\n5. Content Action Plan: 3 clear recommendations for the next video batch.\n\nConstraints:\n- Base all insights strictly on the specialist reports. Do NOT invent numbers.\n- Return valid JSON only.",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1104,
+        1312
+      ],
+      "id": "23d21e28-db6c-4ebc-ab34-788eec223db5",
+      "name": "Chief Content Strategist AI",
+      "retryOnFail": true,
+      "waitBetweenTries": 999,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "model": "beam",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        1504
+      ],
+      "id": "c67fc001-1bf2-4fa7-8773-814159478460",
+      "name": "Ollama - Chief Strategist",
+      "credentials": {
+        "ollamaApi": {
+          "id": "MwxAplz88PXahkQx",
+          "name": "Ollama account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"subject\": \"Social Media Performance Report\",\n  \"body\": \"Executive briefing text containing verified findings and next steps across Instagram, Facebook, and YouTube.\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1328,
+        1504
+      ],
+      "id": "1b790946-8f7e-4898-9c60-a54259db0d16",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "sendTo": "abyouseffan@gmail.com",
+        "subject": "={{ $json.output.subject }}",
+        "message": "={{ $json.output.body }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1552,
+        1312
+      ],
+      "id": "cfa6e0ee-8ded-4e87-ba8b-c664d4775866",
+      "name": "Send a message",
+      "webhookId": "c3b716e3-e39f-4325-8bc0-d4a1767aead5"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1216,
+        1632
+      ],
+      "id": "d9d135b4-7cef-4c88-b3c8-4f2592a96b49",
+      "name": "Google Gemini Chat Model",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "name"
+        },
+        "table": {
+          "__rl": true,
+          "value": "facebook",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "facebook id": "={{ $json.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "facebook id",
+              "displayName": "facebook id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created at",
+              "displayName": "created at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        240,
+        0
+      ],
+      "id": "5f74e606-0e41-4d11-b3e2-43bc2dd81696",
+      "name": "facebook table",
+      "credentials": {
+        "postgres": {
+          "id": "8TQDL2b24M88DaHC",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "name"
+        },
+        "table": {
+          "__rl": true,
+          "value": "youtube",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "youtube id": "={{ $json.uploadId }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        240,
+        192
+      ],
+      "id": "b3bdc39f-0055-457c-9a75-032bb4f5e652",
+      "name": "youtube table",
+      "credentials": {
+        "postgres": {
+          "id": "8TQDL2b24M88DaHC",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "name"
+        },
+        "table": {
+          "__rl": true,
+          "value": "instagram",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "instagram id": "={{ $json.id }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1408,
+        384
+      ],
+      "id": "7ba844bb-d744-4e35-b0d2-ee68f3325326",
+      "name": "instagram table",
+      "credentials": {
+        "postgres": {
+          "id": "8TQDL2b24M88DaHC",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "name"
+        },
+        "table": {
+          "__rl": true,
+          "value": "instagram",
+          "mode": "name"
+        },
+        "returnAll": true,
+        "where": {
+          "values": [
+            {
+              "column": "created at",
+              "condition": ">=",
+              "value": "={{ new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -1760,
+        1120
+      ],
+      "id": "c0d179c3-3e73-4fdc-9282-e1a594186b76",
+      "name": "Supabase - Get IG IDs",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "8TQDL2b24M88DaHC",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "name"
+        },
+        "table": {
+          "__rl": true,
+          "value": "facebook",
+          "mode": "name"
+        },
+        "returnAll": true,
+        "where": {
+          "values": [
+            {
+              "column": "created at",
+              "condition": ">=",
+              "value": "={{ new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -1760,
+        1312
+      ],
+      "id": "445e761e-0b69-4966-835d-bf6b79df9d0f",
+      "name": "Supabase - Get FB IDs",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "8TQDL2b24M88DaHC",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "name"
+        },
+        "table": {
+          "__rl": true,
+          "value": "youtube",
+          "mode": "name"
+        },
+        "returnAll": true,
+        "where": {
+          "values": [
+            {
+              "column": "created at",
+              "condition": ">=",
+              "value": "={{ new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -1776,
+        1504
+      ],
+      "id": "9ca5bcc3-d238-48cf-bf5d-eb3145214be5",
+      "name": "Supabase - Get YT IDs",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "8TQDL2b24M88DaHC",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "name"
+        },
+        "table": {
+          "__rl": true,
+          "value": "snapshot",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "created_at": "={{ $json.collected_at }}",
+            "snapshot": "={{ $json.snapshot_data }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "snapshot",
+              "displayName": "snapshot",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "collected at",
+              "displayName": "collected at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -336,
+        1312
+      ],
+      "id": "99e28df6-22c5-429d-8de9-c52f19009405",
+      "name": "Save Snapshot to Supabase",
+      "credentials": {
+        "postgres": {
+          "id": "8TQDL2b24M88DaHC",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "name"
+        },
+        "table": {
+          "__rl": true,
+          "value": "snapshot",
+          "mode": "name"
+        },
+        "limit": 10,
+        "where": {
+          "values": []
+        },
+        "sort": {
+          "values": [
+            {
+              "column": "created_at",
+              "direction": "DESC"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -112,
+        1312
+      ],
+      "id": "63f539d9-fef3-431f-a06b-e01e46af0d1a",
+      "name": "Read History from Supabase",
+      "credentials": {
+        "postgres": {
+          "id": "8TQDL2b24M88DaHC",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "localhost:5678",
+            "user-agent": "Streamlit-VideoPipeline/1.0",
+            "accept-encoding": "gzip, deflate",
+            "accept": "*/*",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "content-length": "1615"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "event": "video_submission",
+            "db_id": 33,
+            "drive_file_id": "1biIJFaOCE8HqTqTLKZiL4v24fXDI2RnL",
+            "timestamp": "2026-11-18 19:09:29",
+            "title": "valorant clip",
+            "description": "this is a valorant clip with omen\n\n#reel #gaming #omen  #gaming",
+            "hashtags": "#reel #gaming #omen  #gaming",
+            "platforms": [
+              "Instagram",
+              "Facebook",
+              "YouTube"
+            ],
+            "youtube": true,
+            "facebook": true,
+            "instagram": true,
+            "status": "pending",
+            "file": {
+              "name": "valorant-clip.mp4",
+              "size_mb": 55.33,
+              "mimetype": "video/mp4"
+            },
+            "reel_properties": {
+              "crop": {
+                "ratio": "9:16",
+                "strategy": "Crop to Fill (1080x1920 Smart Crop)",
+                "needs_ffmpeg": true
+              },
+              "edit": {
+                "sound_on": true,
+                "strip_audio": false,
+                "trim_start_seconds": 0,
+                "trim_end_seconds": null,
+                "needs_trim": false,
+                "cover": {
+                  "source": "frame_offset",
+                  "thumb_offset_ms": 0,
+                  "custom_image_name": null
+                }
+              },
+              "metadata": {
+                "caption": "this is a valorant clip with omen",
+                "location": "cairo",
+                "collaborators": [],
+                "feeling": null,
+                "is_ai_generated": true,
+                "has_closed_captions": false,
+                "closed_captions_filename": null
+              },
+              "scheduling": {
+                "is_scheduled": true,
+                "publish_time_iso": "2026-11-18T19:07:00:00",
+                "publish_time_unix": null
+              },
+              "advanced": {
+                "share_to_feed": true,
+                "hide_like_counts": true,
+                "turn_off_comments": true,
+                "high_quality_upload": true
+              }
+            },
+            "record": {
+              "title": "valorant clip",
+              "description": "this is a valorant clip with omen\n\n#reel #gaming #omen  #gaming\n\n#reel #gaming #omen  #gaming",
+              "platform": "Instagram, Facebook, YouTube",
+              "video_id": "1biIJFaOCE8HqTqTLKZiL4v24fXDI2RnL",
+              "status": "pending",
+              "youtube": true,
+              "facebook": true,
+              "instagram": true,
+              "needs_compression": false
+            }
+          },
+          "webhookUrl": "http://localhost:5678/webhook-test/new-video-submission",
+          "executionMode": "test"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Save Video to /tmp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Compressed Video": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload a video1": {
+      "main": [
+        [
+          {
+            "node": "youtube table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FB1": {
+      "main": [
+        [
+          {
+            "node": "facebook table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1. Upload to Supabase": {
+      "main": [
+        [
+          {
+            "node": "2. Create Reel Container",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. Create Reel Container": {
+      "main": [
+        [
+          {
+            "node": "3. Wait for Video Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Wait for Video Processing": {
+      "main": [
+        [
+          {
+            "node": "4. Check Container Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4. Check Container Status": {
+      "main": [
+        [
+          {
+            "node": "5. Is Processing Finished?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5. Is Processing Finished?": {
+      "main": [
+        [
+          {
+            "node": "6. Publish Reel",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "3. Wait for Video Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6. Publish Reel": {
+      "main": [
+        [
+          {
+            "node": "instagram table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "FB1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Upload a video1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "1. Upload to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Supabase - Get YT IDs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Supabase - Get IG IDs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Supabase - Get FB IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Get IG Media1": {
+      "main": [
+        [
+          {
+            "node": "instagram filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "instagram filter": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Get FB Videos1": {
+      "main": [
+        [
+          {
+            "node": "filtering fb",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "filtering fb": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get a video": {
+      "main": [
+        [
+          {
+            "node": "filtering yt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "filtering yt": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Prepare Snapshot Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Snapshot Data": {
+      "main": [
+        [
+          {
+            "node": "Save Snapshot to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separate Platform Data & History": {
+      "main": [
+        [
+          {
+            "node": "Instagram Specialist AI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Facebook Specialist AI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "YouTube Specialist AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram Specialist AI": {
+      "main": [
+        [
+          {
+            "node": "Merge Specialist Reports",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama - Instagram": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Instagram Specialist AI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook Specialist AI": {
+      "main": [
+        [
+          {
+            "node": "Merge Specialist Reports",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Ollama - Facebook": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Facebook Specialist AI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YouTube Specialist AI": {
+      "main": [
+        [
+          {
+            "node": "Merge Specialist Reports",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Ollama - YouTube": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "YouTube Specialist AI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Specialist Reports": {
+      "main": [
+        [
+          {
+            "node": "Combine Specialist Reports",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Specialist Reports": {
+      "main": [
+        [
+          {
+            "node": "Chief Content Strategist AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chief Content Strategist AI": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama - Chief Strategist": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Chief Content Strategist AI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Chief Content Strategist AI",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase - Get YT IDs": {
+      "main": [
+        [
+          {
+            "node": "Get a video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase - Get IG IDs": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Get IG Media1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase - Get FB IDs": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Get FB Videos1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Snapshot to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Read History from Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read History from Supabase": {
+      "main": [
+        [
+          {
+            "node": "Separate Platform Data & History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "02f6f69b-be6c-41af-b66d-17a1efcafca5",
+  "meta": {
+    "instanceId": "84538fb54fc6c57ef21e6a3a41d5bb5c3a35c0659976068d29c7885e7c12e623"
+  },
+  "nodeGroups": [],
+  "id": "Zk51rW2hFndjALJC",
+  "tags": []
+}
