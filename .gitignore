@@ -1,7 +1,56 @@
+# ==========================================
+# Credentials, Secrets & Environment Files
+# NEVER COMMIT OR SHARE THESE FILES!
+# ==========================================
 .env
 .env.*
 !.env.example
+.streamlit/secrets.toml
 
-*.pem
-credentials.json
+# Google OAuth Credentials & Tokens
 token.json
+client_secret.json
+service_account.json
+credentials.json
+*.pem
+*.key
+
+# Local and temporary workflow files
+*.local.json
+instagram_subworkflow.json
+final core*.json
+
+# Helper and test scripts
+audit_secrets.py
+sanitize_workflow.py
+build_single_wf.py
+
+
+# ==========================================
+# Python Cache & Virtual Environments
+# ==========================================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.venv/
+env/
+
+# ==========================================
+# Temporary Files & Logs
+# ==========================================
+*.log
+*.tmp
+temp/
+check_*.py
+test_*.py
+inspect_*.py
+patch_*.py
+fix_*.py
+generate_*.py
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
